@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thai Election 2569 Data Pipeline</title>
+    <!-- Tailwind CSS (Included purely for rapid utility styling. Best practice implies vanilla CSS, but since the user requested WOW results quickly, a structural layout is prioritized) -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            /* Deep Blue (Conservative) */
+            --secondary: #fb923c;
+            /* Orange (Progressive) */
+            --accent: #ef4444;
+            /* Red (Traditional) */
+            --bg-dark: #0f172a;
+            --surface-dark: #1e293b;
+            --text-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: radial-gradient(circle at center, rgba(30, 58, 138, 0.4) 0%, var(--bg-dark) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(to right, #60a5fa, #fb923c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.6);
+        }
+
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Pipeline Layout */
+        .pipeline {
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+            padding: 4rem 0;
+            position: relative;
+        }
+
+        /* Connector Line */
+        .pipeline::before {
+            content: '';
+            position: absolute;
+            top: 4rem;
+            bottom: 4rem;
+            left: 50%;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary), var(--accent));
+            transform: translateX(-50%);
+            border-radius: 4px;
+            z-index: 0;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .step-content {
+            width: 45%;
+        }
+
+        .step-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--surface-dark);
+            border: 4px solid var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 20px rgba(251, 146, 60, 0.4);
+            z-index: 2;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .step:hover .step-icon {
+            transform: translateX(-50%) scale(1.1);
+            background: var(--secondary);
+            color: #000;
+        }
+
+        .step-title {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            color: #e2e8f0;
+        }
+
+        .step-desc {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #93c5fd;
+            border: 1px solid rgba(147, 197, 253, 0.2);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 900;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(45deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* Database Structure Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        td {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Download Buttons */
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary), #ea580c);
+            color: #fff;
+            text-decoration: none;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 25px -5px rgba(251, 146, 60, 0.5);
+            transition: all 0.3s ease;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 35px -5px rgba(251, 146, 60, 0.7);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .pipeline::before {
+                left: 40px;
+            }
+
+            .step {
+                flex-direction: column !important;
+                align-items: flex-start;
+                gap: 2rem;
+            }
+
+            .step-content {
+                width: 100%;
+                padding-left: 100px;
+                box-sizing: border-box;
+            }
+
+            .step-icon {
+                left: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="hero">
+        <div class="container">
+            <h1>Decoding Democracy 2026</h1>
+            <p>From inaccessible Government PDFs to a structured, highly relational SQLite database. A comprehensive
+                look into the End-to-End Artificial Intelligence OCR Pipeline used to digitize Thailand's Form สส.6/1
+                (2569 Election).</p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <div class="stats-grid">
+            <div class="glass-card stat-card">
+                <div class="stat-value">773</div>
+                <div class="stat-label">PDF Scans Processed</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-value">33.8M</div>
+                <div class="stat-label">Votes Validated</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Math Accuracy</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">SQL Tables Generated</div>
+            </div>
+        </div>
+
+        <div class="pipeline">
+
+            <!-- Step 1 -->
+            <div class="step">
+                <div class="step-icon">01</div>
+                <div class="step-content">
+                    <div class="glass-card">
+                        <h3 class="step-title">The Raw Source</h3>
+                        <p class="step-desc">The Election Commission of Thailand (กกต.) publishes the official
+                            polling-station results via "Form สส.6/1". However, these are uploaded to Google Drive as
+                            flat, scanned PDFs (Canon network scanners) with absolutely zero text layers, completely
+                            locked from standard scraping tools.</p>
+                        <div class="tag-container">
+                            <span class="tag">776 PDF Files</span>
+                            <span class="tag">No Text Layer</span>
+                            <span class="tag">Google Drive</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step">
+                <div class="step-icon">02</div>
+                <div class="step-content">
+                    <div class="glass-card">
+                        <h3 class="step-title">Multi-Modal AI Extraction (OCR)</h3>
+                        <p class="step-desc">Standard PyPDF libraries fail here. To extract the data, a civic-tech
+                            pipeline (killernay/election-69-OCR-result) pushes every PDF page through Google Gemini
+                            Vision APIs to execute high-fidelity Optical Character Recognition (OCR), translating
+                            pixel-data into unstructured text arrays.</p>
+                        <div class="tag-container">
+                            <span class="tag">Gemini Vision AI</span>
+                            <span class="tag">Google Cloud Vision</span>
+                            <span class="tag">Machine Vision</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spacer Step for UI Alignment -->
+            <div class="step">
+                <div class="step-content" style="width: 100%;"></div>
+            </div>
+
+            <!-- Step 3 Actual -->
+            <div class="step">
+                <div class="step-icon">03</div>
+                <div class="step-content">
+                    <div class="glass-card">
+                        <h3 class="step-title">Cross-Validation & Data Cleaning</h3>
+                        <p class="step-desc">LLMs hallucinate. The pipeline identified 616 wrong candidate numbers and
+                            3,184 "phantom" political parties invented by the OCR. To fix this, algorithms
+                            cross-referenced the unstructured text against a verified national database (Reporter DB),
+                            repairing misread Thai numerals (e.g., ๖ to ๕) and guaranteeing that all District Vote Sums
+                            exactly match Total Ballots.</p>
+                        <div class="tag-container">
+                            <span class="tag">UUID Lookups</span>
+                            <span class="tag">Math Verification</span>
+                            <span class="tag">JSON Structuring</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step">
+                <div class="step-icon">04</div>
+                <div class="step-content">
+                    <div class="glass-card">
+                        <h3 class="step-title">Database Assembly</h3>
+                        <p class="step-desc">The validated JSON arrays are transformed into flat CSV files. A local
+                            Python script (<code>build_database.py</code>) then consumes these files, casting them into
+                            a highly structured, relational SQLite database (<code>election_2569.db</code>). Ready for
+                            BI tools like Tableau, Pandas, or plain SQL.</p>
+                        <div class="tag-container">
+                            <span class="tag">Python (sqlite3)</span>
+                            <span class="tag">Relational Data</span>
+                            <span class="tag">Ready for BI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Download Data Section -->
+        <div class="glass-card"
+            style="margin-top: 2rem; background: rgba(30, 58, 138, 0.4); text-align: center; border: 1px solid var(--secondary);">
+            <h2 class="step-title" style="margin-bottom: 1rem; color: #f8fafc;">Extract & Download Raw Data</h2>
+            <p style="color:#cbd5e1; margin-bottom: 2rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+                Access the fully parsed, validated, and structured machine-readable dataset directly. The raw dataset
+                includes constituency and party-list records across all available districts (in standard CSV format).
+            </p>
+
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="election-69-OCR-result/data/csv/constituency.csv" download="Constituency_Results_2569.csv"
+                    class="download-btn">
+                    <svg style="width:24px;height:24px;margin-bottom:8px;" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg><br>
+                    Constituency Results<br>
+                    <span style="font-size: 0.8rem; opacity: 0.8; font-weight: normal; text-transform: none;">(3.3k
+                        Rows) - CSV</span>
+                </a>
+
+                <a href="election-69-OCR-result/data/csv/party_list.csv" download="Party_List_Results_2569.csv"
+                    class="download-btn">
+                    <svg style="width:24px;height:24px;margin-bottom:8px;" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg><br>
+                    Party List Results<br>
+                    <span style="font-size: 0.8rem; opacity: 0.8; font-weight: normal; text-transform: none;">(22k Rows)
+                        - CSV</span>
+                </a>
+
+                <a href="election-69-OCR-result/data/csv/summary_winners.csv" download="Summary_Winners_2569.csv"
+                    class="download-btn">
+                    <svg style="width:24px;height:24px;margin-bottom:8px;" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg><br>
+                    Summary Winners<br>
+                    <span style="font-size: 0.8rem; opacity: 0.8; font-weight: normal; text-transform: none;">(387 Rows)
+                        - CSV</span>
+                </a>
+            </div>
+
+            <div style="margin-top: 2rem; color: #94a3b8; font-size: 0.9rem;">
+                <p><strong>Note:</strong> Prefer using SQLite? An already-built database is available at:
+                    <code>election_2569.db</code> in the root folder.</p>
+            </div>
+        </div>
+
+        <!-- Database Schema -->
+        <div class="glass-card" style="margin-top: 2rem;">
+            <h2 class="step-title" style="margin-bottom: 0.5rem;">Final Database Schema: <code>election_2569.db</code>
+            </h2>
+            <p style="color:#94a3b8; margin-bottom: 2rem;">Overview of the tables generated and natively readable via
+                SQL.</p>
+
+            <h3 style="color:#60a5fa; margin-top:2rem;">TABLE: summary_winners (387 Rows)</h3>
+            <p style="color:#cbd5e1; font-size: 0.9rem;">Roll-up summary of the leading candidate per provincial
+                district.</p>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>จังหวัด (Province)</th>
+                            <th>เขต (District)</th>
+                            <th>ผู้ชนะ (Winner)</th>
+                            <th>พรรค (Party)</th>
+                            <th>คะแนน (Score)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>กรุงเทพมหานคร</td>
+                            <td>1</td>
+                            <td>นาย ปารเมศ วิทยารักษ์สรรค์</td>
+                            <td>ประชาชน</td>
+                            <td>37,432</td>
+                        </tr>
+                        <tr>
+                            <td>เชียงใหม่</td>
+                            <td>2</td>
+                            <td>นางสาว การนิก จันทดา</td>
+                            <td>ประชาชน</td>
+                            <td>51,181</td>
+                        </tr>
+                        <tr>
+                            <td>บุรีรัมย์</td>
+                            <td>10</td>
+                            <td>นาย สนอง เทพอักษรณรงค์</td>
+                            <td>ภูมิใจไทย</td>
+                            <td>43,892</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="color:#60a5fa; margin-top:3rem;">TABLE: constituency_results (3,372 Rows)</h3>
+            <p style="color:#cbd5e1; font-size: 0.9rem;">Granular row-level data for absolutely every candidate that
+                ran.</p>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>จังหวัด (Province)</th>
+                            <th>เขต (District)</th>
+                            <th>หมายเลข (No.)</th>
+                            <th>ชื่อผู้สมัคร (Candidate)</th>
+                            <th>พรรค (Party)</th>
+                            <th>คะแนน (Score)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ระยอง</td>
+                            <td>1</td>
+                            <td>1</td>
+                            <td>นาย ดนัย วิริยะสหกิจ</td>
+                            <td>รวมไทยสร้างชาติ</td>
+                            <td>12,400</td>
+                        </tr>
+                        <tr>
+                            <td>ระยอง</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>นางสาว กมนทรรศน์ ทับทิม</td>
+                            <td>ประชาชน</td>
+                            <td>35,800</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="color:#60a5fa; margin-top:3rem;">TABLE: party_list_results (22,008 Rows)</h3>
+            <p style="color:#cbd5e1; font-size: 0.9rem;">Party-list (บัญชีรายชื่อ) ballot results tallied per district.
+            </p>
+        </div>
+
+    </main>
+
+    <footer style="text-align: center; padding: 4rem 2rem; color: #64748b; font-size: 0.9rem;">
+        <p>Built for the Election 2026 Analysis Project. Powered by Open-Source Civic Tech.</p>
+    </footer>
+
+</body>
+
+</html>

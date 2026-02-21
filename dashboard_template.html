@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thailand Election 2569 — Investigative Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{--bg:#080c14;--s1:#111827;--s2:#1a2332;--b:rgba(148,163,184,.08);--bg2:rgba(59,130,246,.25);
+--t:#f1f5f9;--m:#64748b;--d:#94a3b8;--bl:#3b82f6;--sk:#38bdf8;--or:#f97316;--am:#f59e0b;
+--rd:#ef4444;--rs:#f43f5e;--gr:#10b981;--em:#34d399;--pu:#8b5cf6;--vi:#7c3aed}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,sans-serif;background:var(--bg);color:var(--t);overflow-x:hidden;line-height:1.6}
+/* Nav */
+nav{position:sticky;top:0;z-index:100;background:rgba(8,12,20,.92);backdrop-filter:blur(14px);
+-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--b);
+padding:.6rem 1.5rem;display:flex;gap:1.5rem;align-items:center}
+.logo{font-family:Outfit,sans-serif;font-weight:900;font-size:1rem;white-space:nowrap;
+background:linear-gradient(90deg,var(--sk),var(--or));-webkit-background-clip:text;
+background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:1.25rem;flex:1;overflow-x:auto}
+.nav-links a{color:var(--d);text-decoration:none;font-size:.78rem;font-weight:500;
+white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.nav-links a:hover{color:var(--t);border-color:var(--bl)}
+#lang-btn{margin-left:auto;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);
+color:var(--sk);border-radius:9999px;padding:.25rem .85rem;font-size:.75rem;font-weight:700;
+cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+#lang-btn:hover{background:rgba(59,130,246,.3)}
+/* Context Banner */
+.context-wrap{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(8,12,20,0) 70%),
+radial-gradient(circle at 90% 50%,rgba(249,115,22,.1),transparent 55%);
+border-bottom:1px solid var(--b);padding:3.5rem 2rem 2.5rem;max-width:1400px;margin:0 auto}
+.alert-badge{display:inline-flex;align-items:center;gap:.5rem;
+background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
+border-radius:9999px;padding:.25rem .85rem;margin-bottom:1rem;
+font-size:.72rem;font-weight:700;color:#fca5a5;letter-spacing:.05em}
+.alert-badge .dot{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+h1.report-title{font-family:Outfit,sans-serif;font-size:clamp(1.8rem,4vw,3rem);font-weight:900;
+line-height:1.15;background:linear-gradient(135deg,#f1f5f9,var(--sk) 50%,var(--or));
+-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.75rem}
+.report-subtitle{color:var(--d);max-width:720px;font-size:1rem;margin-bottom:1.5rem}
+/* News cards */
+.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1.5rem}
+.news-card{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:1rem 1.1rem;
+border-left:3px solid var(--or);transition:border-color .2s}
+.news-card:nth-child(2){border-left-color:var(--rd)}
+.news-card:nth-child(3){border-left-color:var(--pu)}
+.news-card:nth-child(4){border-left-color:var(--am)}
+.news-tag{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--or);margin-bottom:.4rem}
+.news-card:nth-child(2) .news-tag{color:var(--rd)}
+.news-card:nth-child(3) .news-tag{color:#c4b5fd}
+.news-card:nth-child(4) .news-tag{color:var(--am)}
+.news-card h4{font-size:.88rem;font-weight:700;line-height:1.4;margin-bottom:.4rem}
+.news-card p{font-size:.78rem;color:var(--d);line-height:1.55}
+/* Wrap */
+.wrap{max-width:1400px;margin:0 auto;padding:2rem}
+.section{margin-bottom:2.5rem}
+.sec-hdr{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem}
+.sec-hdr h2{font-family:Outfit,sans-serif;font-size:1.2rem;font-weight:700}
+.tag{font-size:.68rem;padding:.18rem .6rem;border-radius:9999px;font-weight:700;letter-spacing:.05em}
+.tag-bl{background:rgba(59,130,246,.15);color:var(--sk)}
+.tag-or{background:rgba(249,115,22,.15);color:var(--or)}
+.tag-rd{background:rgba(239,68,68,.15);color:#fca5a5}
+.tag-gr{background:rgba(16,185,129,.15);color:var(--em)}
+.tag-pu{background:rgba(139,92,246,.15);color:#c4b5fd}
+/* Grid */
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem}
+.full{grid-column:1/-1}
+@media(max-width:900px){.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr}}
+/* Card */
+.card{background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:1.4rem;
+box-shadow:0 4px 20px rgba(0,0,0,.4);position:relative;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:var(--bg2)}
+.ca::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.cbl::before{background:linear-gradient(90deg,var(--bl),var(--sk))}
+.cor::before{background:linear-gradient(90deg,var(--or),var(--am))}
+.crd::before{background:linear-gradient(90deg,var(--rs),var(--rd))}
+.cgr::before{background:linear-gradient(90deg,var(--gr),var(--em))}
+.cpu::before{background:linear-gradient(90deg,var(--vi),var(--pu))}
+/* KPI */
+.kpi-t{font-size:.7rem;font-weight:600;color:var(--m);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.45rem}
+.kpi-v{font-family:Outfit,sans-serif;font-size:2rem;font-weight:900;line-height:1}
+.kpi-d{font-size:.8rem;font-weight:600;color:var(--or);margin-top:.35rem}
+.kpi-s{font-size:.75rem;color:var(--m);margin-top:.3rem}
+/* Chart */
+.chart{height:300px;width:100%}
+.chart-lg{height:480px;width:100%}
+/* Variance explainer */
+.var-box{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);
+border-radius:12px;padding:1.25rem;margin-bottom:1.5rem}
+.var-box h3{font-size:.9rem;font-weight:700;color:var(--sk);margin-bottom:.6rem}
+.var-box p{font-size:.82rem;color:var(--d);line-height:1.65}
+/* Table */
+.tbl-wrap{overflow-y:auto;border-radius:10px}
+.tbl-wrap::-webkit-scrollbar{width:4px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:var(--s2);border-radius:9999px}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+thead th{position:sticky;top:0;background:var(--s2);color:var(--m);font-size:.68rem;font-weight:700;
+text-transform:uppercase;letter-spacing:.06em;padding:.7rem .9rem;text-align:left;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--b);transition:background .15s}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+tbody td{padding:.6rem .9rem;color:var(--d);vertical-align:top}
+/* Badges */
+.bdg{display:inline-block;font-size:.62rem;font-weight:700;padding:.15rem .5rem;
+border-radius:9999px;letter-spacing:.05em;white-space:nowrap}
+.bdg-rd{background:rgba(239,68,68,.2);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+.bdg-or{background:rgba(249,115,22,.2);color:#fdba74;border:1px solid rgba(249,115,22,.3)}
+.bdg-gy{background:rgba(100,116,139,.2);color:var(--d);border:1px solid rgba(100,116,139,.3)}
+.bdg-gr{background:rgba(16,185,129,.2);color:var(--em);border:1px solid rgba(16,185,129,.3)}
+.bdg-bl{background:rgba(59,130,246,.2);color:var(--sk);border:1px solid rgba(59,130,246,.3)}
+/* GitHub link */
+.src-link{display:inline-flex;align-items:center;gap:3px;color:var(--em);font-size:.7rem;
+text-decoration:none;padding:.15rem .4rem;border-radius:5px;
+border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.07);transition:all .2s}
+.src-link:hover{background:rgba(16,185,129,.18)}
+/* Filter bar */
+.fbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.fbar input,.fbar select{background:var(--s2);border:1px solid var(--b);color:var(--t);
+border-radius:8px;padding:.45rem .7rem;font-size:.8rem;outline:none;transition:border-color .2s}
+.fbar input:focus,.fbar select:focus{border-color:var(--bl)}
+.fbar input{flex:1;min-width:180px}
+.cpill{margin-left:auto;font-size:.72rem;color:var(--m);background:var(--s2);
+padding:.2rem .65rem;border-radius:9999px}
+/* Progress */
+.pbar{background:var(--b);border-radius:9999px;height:5px;margin-top:.4rem}
+.pfill{height:100%;border-radius:9999px}
+/* Note */
+.note{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);
+border-radius:8px;padding:.7rem 1rem;font-size:.78rem;color:#fcd34d;
+margin-bottom:1rem;display:flex;gap:.5rem;align-items:flex-start}
+/* Insight box */
+.insight{background:rgba(59,130,246,.06);border-left:3px solid var(--bl);border-radius:0 10px 10px 0;
+padding:.9rem 1.1rem;margin-top:1rem;font-size:.8rem;color:var(--d);line-height:1.7}
+.insight strong{color:var(--t)}.insight .highlight{color:var(--am);font-weight:700}
+.insight .warn{color:#fca5a5;font-weight:700}.insight .good{color:var(--em);font-weight:700}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--s2);border-radius:9999px}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">🗳 ผลเลือกตั้ง 2569</span>
+  <div class="nav-links">
+    <a href="#context" class="i18n" data-en="Investigation Brief" data-th="บทนำการสืบสวน"></a>
+    <a href="#kpis" class="i18n" data-en="National Stats" data-th="สถิติระดับชาติ"></a>
+    <a href="#variance" class="i18n" data-en="Variance Analysis" data-th="วิเคราะห์ความแตกต่าง"></a>
+    <a href="#seats" class="i18n" data-en="Seats &amp; Votes" data-th="ที่นั่ง &amp; คะแนน"></a>
+    <a href="#scatter" class="i18n" data-en="Scatter Map" data-th="แผนที่กระจาย"></a>
+    <a href="#spoiled" class="i18n" data-en="Spoiled Ballots" data-th="บัตรเสีย"></a>
+    <a href="#districts" class="i18n" data-en="All Districts" data-th="ทุกเขต"></a>
+  </div>
+  <button id="lang-btn" onclick="toggleLang()">TH 🇹🇭</button>
+</nav>
+
+<!-- CONTEXT -->
+<div class="context-wrap" id="context">
+  <div class="alert-badge"><span class="dot"></span> <span class="i18n" data-en="ACTIVE INVESTIGATION — Feb 8, 2026 Election" data-th="สืบสวนต่อเนื่อง — เลือกตั้ง 8 ก.พ. 2569"></span></div>
+  <h1 class="report-title i18n" data-en="Thailand 2569 Election&#10;Statistical Investigation" data-th="รายงานสืบสวนสถิติ&#10;การเลือกตั้ง 2569"></h1>
+  <p class="report-subtitle i18n"
+    data-en="On February 8, 2026, Thailand held its general election. Within hours, four major controversies emerged — QR codes on ballots, vote count mismatches, calls for annulment, and the 1:1 ballot ratio anomaly. This dashboard investigates all of them using official ECT data."
+    data-th="เมื่อวันที่ 8 กุมภาพันธ์ 2569 ไทยจัดการเลือกตั้งทั่วไป ในไม่กี่ชั่วโมงหลังจากนั้น เกิดข้อกังวลสำคัญ 4 ประการ ได้แก่ รหัส QR บนบัตรเลือกตั้ง ความไม่สอดคล้องของจำนวนคะแนน การเรียกร้องให้เพิกถอนผล และความผิดปกติของอัตราส่วนบัตร 1:1 รายงานนี้สืบสวนทุกประเด็นจากข้อมูล กกต. อย่างเป็นทางการ">
+  </p>
+  <div class="news-grid">
+    <div class="news-card">
+      <div class="news-tag i18n" data-en="CONTROVERSY #1" data-th="ข้อกังวล #1"></div>
+      <h4 class="i18n" data-en="QR Code &amp; Barcode on Ballots" data-th="QR Code และบาร์โค้ดบนบัตรเลือกตั้ง"></h4>
+      <p class="i18n" data-en="Each ballot paper carried a unique QR code and barcode — critics argue this violates constitutional ballot secrecy. The EC insists they are anti-forgery measures. Ombudsman has launched investigation." data-th="บัตรเลือกตั้งแต่ละใบมี QR Code และบาร์โค้ดเฉพาะ — ฝ่ายวิจารณ์บอกว่าละเมิดความลับในการออกเสียง ผู้ตรวจการแผ่นดินเปิดสอบสวนแล้ว"></p>
+    </div>
+    <div class="news-card">
+      <div class="news-tag i18n" data-en="CONTROVERSY #2" data-th="ข้อกังวล #2"></div>
+      <h4 class="i18n" data-en="Ballot Count Mismatches" data-th="จำนวนบัตรไม่ตรงกัน"></h4>
+      <p class="i18n" data-en="Multiple constituencies reported: more ballots counted than voters who came to vote. In Sakon Nakhon, 545 ballots were counted from just 440 registered voters. EC ordered recounts in 18+ districts." data-th="หลายเขตพบบัตรมากกว่าผู้มาใช้สิทธิ ในสกลนคร พบบัตร 545 ใบ จากผู้มาใช้สิทธิเพียง 440 คน กกต. สั่งนับใหม่กว่า 18 เขต"></p>
+    </div>
+    <div class="news-card">
+      <div class="news-tag i18n" data-en="CONTROVERSY #3" data-th="ข้อกังวล #3"></div>
+      <h4 class="i18n" data-en="1:1 Ballot Ratio Anomaly" data-th="ความผิดปกติอัตราส่วนบัตร 1:1"></h4>
+      <p class="i18n" data-en="Under Thai election law, each voter gets exactly 2 ballots (one constituency, one party-list). Valid totals must be equal. Our analysis finds 250/383 districts have an absolute deviation of more than 2%." data-th="ตามกฎหมายไทย ผู้มีสิทธิแต่ละคนได้รับบัตร 2 ใบ การวิเคราะห์พบว่า 250 ใน 383 เขตมีความเบี่ยงเบนสัมบูรณ์มากกว่า 2%"></p>
+    </div>
+    <div class="news-card">
+      <div class="news-tag i18n" data-en="CONTROVERSY #4" data-th="ข้อกังวล #4"></div>
+      <h4 class="i18n" data-en="Calls for Annulment" data-th="เรียกร้องให้เพิกถอนการเลือกตั้ง"></h4>
+      <p class="i18n" data-en="Multiple petitions filed with Ombudsman and Administrative Court seeking election nullification. People's Party noted 18 disputed constituencies. Democrat Party formed investigation task force." data-th="ยื่นคำร้องต่อผู้ตรวจการแผ่นดินและศาลปกครองเพื่อขอให้เพิกถอนผล พรรคประชาชนระบุมีปัญหา 18 เขต พรรคประชาธิปัตย์ตั้งทีมสอบสวน"></p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- KPIs -->
+<div class="section" id="kpis">
+  <div class="sec-hdr">
+    <h2 class="i18n" data-en="National Statistics" data-th="สถิติระดับชาติ"></h2>
+    <span class="tag tag-bl i18n" data-en="387/400 Constituencies" data-th="387/400 เขต"></span>
+  </div>
+  <div class="g4" id="kpi-grid"></div>
+</div>
+
+<!-- VARIANCE ANALYSIS -->
+<div class="section" id="variance">
+  <div class="sec-hdr">
+    <h2 class="i18n" data-en="Ballot Variance Analysis: Net vs Absolute" data-th="การวิเคราะห์ความแตกต่างของบัตร: สุทธิ vs สัมบูรณ์"></h2>
+    <span class="tag tag-rd i18n" data-en="Key Investigation" data-th="หัวใจการสืบสวน"></span>
+  </div>
+  <div class="var-box">
+    <h3 class="i18n" data-en="Why Both Matter" data-th="ทำไมต้องดูทั้งสองค่า"></h3>
+    <p class="i18n"
+      data-en="Three distinct lenses reveal the full picture. (1) Official ECT net: +85,463 — the nationally published gap between total valid party-list and constituency ballots. (2) Per-district net: +828,633 — sum of (party minus constituency) per district from OCR data, where some party-list files may contain inflated readings. (3) Per-district absolute: 1,162,395 — sum of |diff| per district. Since 1,162,395 &gt; 828,633, roughly 167,000 votes worth of districts deviate in the OPPOSITE direction (constituency &gt; party). This is the critical finding: districts do NOT all lean the same way. Official national net (+85k) is far smaller than per-district absolute (1.16M), meaning large local misalignments cancel out at the national level — masking district-level problems."
+      data-th="สามมุมมองที่แตกต่างเผยภาพรวมที่สมบูรณ์ (1) สุทธิ กกต. อย่างเป็นทางการ: +85,463 — ส่วนต่างที่รายงานระหว่างบัตรบัญชีรายชื่อและแบ่งเขตที่ใช้ได้รวมทั้งชาติ (2) สุทธิต่อเขต (OCR): +828,633 — ผลรวมของ (บัญชีรายชื่อ ลบ แบ่งเขต) ต่อเขต ซึ่งบางเขตอาจมีค่า OCR ที่สูงเกิน (3) สัมบูรณ์ต่อเขต: 1,162,395 — ผลรวมของ |ผลต่าง| ต่อเขต เนื่องจาก 1,162,395 &gt; 828,633 หมายความว่าประมาณ 167,000 คะแนนมาจากเขตที่เบี่ยงในทิศทางตรงข้าม (แบ่งเขต &gt; บัญชีรายชื่อ) นี่คือผลการค้นพบสำคัญ: เขตต่างๆ ไม่ได้เอียงไปในทิศทางเดียวกันทั้งหมด">
+    </p>
+  </div>
+  <div class="g4" id="variance-grid"></div>
+  <div class="g2" style="margin-top:1.25rem">
+    <div class="card ca cor">
+      <div class="kpi-t i18n" data-en="Abs Deviation per District (Distribution)" data-th="ความเบี่ยงเบนสัมบูรณ์ต่อเขต (การกระจาย)"></div>
+      <div id="chart-abs-dist" class="chart"></div>
+    </div>
+    <div class="card ca cpu">
+      <div class="kpi-t i18n" data-en="Net vs Abs Deviation Comparison" data-th="เปรียบเทียบความแตกต่างสุทธิ vs สัมบูรณ์"></div>
+      <div id="chart-net-abs" class="chart"></div>
+    </div>
+  </div>
+  <div class="insight">
+    <strong class="i18n" data-en="🔍 What this means:" data-th="🔍 ความหมาย:"></strong>
+    <span class="i18n" 
+      data-en=" The distribution histogram (left) shows most districts (133) deviate only 0-1% — supporting macro legitimacy. But 92 districts exceed 5% absolute deviation and 250/383 exceed 2%, which is structurally anomalous. The comparison bars (right) reveal that <span class='warn'>spoiled ballots (1.29M)</span> greatly exceed even the official net discrepancy (+85k), suggesting counting and recording errors are more significant than ballot padding."
+      data-th=" ฮิสโตแกรมการกระจาย (ซ้าย) แสดงว่าส่วนใหญ่ 133 เขตเบี่ยงเบนเพียง 0-1% ซึ่งสนับสนุนความชอบธรรมในระดับมหภาค แต่ 92 เขตเกิน 5% และ 250/383 เขต เกิน 2% ซึ่งผิดปกติเชิงโครงสร้าง แผนภูมิเปรียบเทียบ (ขวา) เผยว่า บัตรเสีย (1.29 ล้านใบ) มากกว่าส่วนต่างสุทธิอย่างเป็นทางการ (+85k) มาก แสดงว่าข้อผิดพลาดในการนับและบันทึกมีนัยสำคัญกว่าการยัดบัตร">
+    </span>
+  </div>
+</div>
+
+<!-- SEATS + PARTY VOTES -->
+<div class="section" id="seats">
+  <div class="sec-hdr">
+    <h2 class="i18n" data-en="Parliamentary Seats &amp; Party-List Votes" data-th="ที่นั่งรัฐสภาและคะแนนบัญชีรายชื่อ"></h2>
+    <span class="tag tag-pu i18n" data-en="Official Results" data-th="ผลการเลือกตั้งอย่างเป็นทางการ"></span>
+  </div>
+  <div class="g2">
+    <div class="card ca cor">
+      <div class="kpi-t" style="margin-bottom:.8rem" id="seats-label"></div>
+      <div id="chart-seats" class="chart"></div>
+    </div>
+    <div class="card ca cbl">
+      <div class="kpi-t" style="margin-bottom:.8rem" id="party-label"></div>
+      <div id="chart-popular" class="chart"></div>
+    </div>
+  </div>
+  <div class="insight">
+    <strong class="i18n" data-en="🔍 Key insight:" data-th="🔍 ข้อสังเกตสำคัญ:"></strong>
+    <span class="i18n"
+      data-en=" <span class='warn'>Phumjaithai won 174 constituency seats (~45%) but only ~17.6% of party-list votes</span> — a significant seat-to-vote over-representation. Conversely, <span class='highlight'>Prachachat won the most party-list votes (~31%) but fewer constituency seats</span>. This divergence suggests strong local machine politics (Phumjaithai can win districts even where national sentiment may differ) vs protest/ideological voting (Prachachat attracts party voters who may reject local candidates)."
+      data-th=" ภูมิใจไทยชนะ 174 ที่นั่งแบ่งเขต (~45%) แต่มีคะแนนบัญชีรายชื่อเพียง ~17.6% — การเป็นตัวแทนที่นั่งเกินสัดส่วน ในทางกลับกัน ประชาชนชนะคะแนนบัญชีรายชื่อมากที่สุด (~31%) แต่มีที่นั่งแบ่งเขตน้อยกว่า ความแตกต่างนี้แสดงให้เห็นถึงการเมืองเครือข่ายท้องถิ่น vs การโหวตเชิงอุดมการณ์">
+    </span>
+  </div>
+</div>
+
+<!-- SCATTER -->
+<div class="section" id="scatter">
+  <div class="sec-hdr">
+    <h2 class="i18n" data-en="District Scatter: Constituency vs Party-List Votes" data-th="แผนผังกระจาย: คะแนนแบบแบ่งเขต vs บัญชีรายชื่อ"></h2>
+    <span class="tag tag-pu i18n" data-en="3σ Outlier Detection" data-th="ตรวจจับค่าผิดปกติ 3σ"></span>
+  </div>
+  <div class="note">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+    <span class="i18n" data-en="Each dot = 1 district. Green line = perfect 1:1 ratio. Red = >2% abs deviation. Bubble size = deviation magnitude. Hover for winner, party, GitHub source." data-th="จุดแต่ละจุด = 1 เขต เส้นเขียว = อัตราส่วน 1:1 ที่สมบูรณ์ สีแดง = ความเบี่ยงเบนสัมบูรณ์ > 2% ขนาดฟอง = ขนาดความเบี่ยงเบน เอาเมาส์ไปวางเพื่อดูผู้ชนะ พรรค และแหล่งข้อมูล GitHub"></span>
+  </div>
+  <div class="card full ca cpu"><div id="chart-scatter" class="chart-lg"></div></div>
+  <div class="insight">
+    <strong class="i18n" data-en="🔍 Reading this chart:" data-th="🔍 การอ่านแผนภูมินี้:"></strong>
+    <span class="i18n"
+      data-en=" If all 383 districts followed the 1:1 law perfectly, every dot would lie exactly on the <span class='good'>green line</span>. The <span class='warn'>red outlier dots</span> are districts where the gap exceeds 2% — these 250 districts warrant individual investigation. The <span class='highlight'>Pearson R = 0.957</span> proves the overall system is strongly correlated (no broad fraud), but the dashed trend line sits ABOVE the 1:1 line — confirming a systematic bias toward more party-list ballots in most districts."
+      data-th=" หากทุก 383 เขตปฏิบัติตามกฎ 1:1 อย่างสมบูรณ์ จุดทุกจุดจะอยู่บนเส้นสีเขียวพอดี จุดสีแดง คือเขตที่ช่องว่างเกิน 2% — 250 เขตเหล่านี้ควรได้รับการตรวจสอบเพิ่มเติม Pearson R = 0.957 พิสูจน์ว่าระบบโดยรวมมีความสัมพันธ์สูง (ไม่มีการฉ้อโกงในวงกว้าง) แต่เส้นแนวโน้มอยู่เหนือเส้น 1:1 ยืนยันอคติระบบที่บัตรบัญชีรายชื่อมากกว่าในส่วนใหญ่">
+    </span>
+  </div>
+</div>
+
+<!-- SPOILED BALLOTS -->
+<div class="section" id="spoiled">
+  <div class="sec-hdr">
+    <h2 class="i18n" data-en="Spoiled Ballot Investigation" data-th="การสืบสวนบัตรเสีย"></h2>
+    <span class="tag tag-rd i18n" data-en="1.29M Total" data-th="รวม 1.29 ล้านใบ"></span>
+  </div>
+  <div class="g3" style="margin-bottom:1.25rem">
+    <div class="card ca crd">
+      <div class="kpi-t i18n" data-en="Total Constituency Spoiled" data-th="บัตรเสีย (แบ่งเขต) รวม"></div>
+      <div class="kpi-v" id="spoiled-const-val"></div>
+      <div class="kpi-s i18n" data-en="Across all 383 valid districts" data-th="จาก 383 เขตที่มีข้อมูล"></div>
+    </div>
+    <div class="card ca cor">
+      <div class="kpi-t i18n" data-en="Total Party-List Spoiled" data-th="บัตรเสีย (บัญชีรายชื่อ) รวม"></div>
+      <div class="kpi-v" id="spoiled-party-val"></div>
+      <div class="kpi-s i18n" data-en="+ 2,005,195 blank/no-vote party ballots — massive protest signal" data-th="+ 2,005,195 บัตรว่างเปล่า — สัญญาณประท้วงครั้งใหญ่"></div>
+    </div>
+    <div class="card ca cpu">
+      <div class="kpi-t i18n" data-en="Avg Spoiled Rate" data-th="อัตราบัตรเสียเฉลี่ย"></div>
+      <div class="kpi-v" id="spoiled-avg-val"></div>
+      <div class="kpi-s i18n" data-en="Per district, of voters who came" data-th="ต่อเขต จากผู้มาใช้สิทธิ"></div>
+    </div>
+  </div>
+  <div class="card full">
+    <div class="kpi-t" style="margin-bottom:.75rem" id="top-spoiled-label"></div>
+    <div class="tbl-wrap" style="max-height:340px" id="spoiled-table"></div>
+  </div>
+  <div class="insight">
+    <strong class="i18n" data-en="�� Why spoiled ballots matter here:" data-th="🔍 ทำไมบัตรเสียถึงสำคัญ:"></strong>
+    <span class="i18n"
+      data-en=" The <span class='warn'>1.29M spoiled constituency ballots</span> vs 1.16M absolute deviation across all districts is not a coincidence. The QR code controversy means some voters deliberately spoiled their ballot in protest — this would show as <em>valid party-list ballot + no constituency ballot</em>, directly inflating the 1:1 discrepancy. Normalizing spoiled ballots per turnout district-by-district could reveal which areas protested through ballot invalidation rather than candidate choice."
+      data-th=" บัตรเสีย 1.29 ล้านใบใน constituency เทียบกับความเบี่ยงเบนสัมบูรณ์ 1.16 ล้านทั่วทุกเขต ไม่ใช่เรื่องบังเอิญ ข้อกังวลเรื่อง QR Code หมายความว่าผู้มีสิทธิบางคนจงใจทำบัตรเสียเพื่อประท้วง — ซึ่งจะปรากฏเป็นบัตรบัญชีรายชื่อที่ใช้ได้ + ไม่มีบัตรแบ่งเขต ส่งผลโดยตรงต่อความไม่สอดคล้องของอัตราส่วน 1:1">
+    </span>
+  </div>
+</div>
+
+<!-- PROTEST / SURGE -->
+<div class="section" id="protest">
+  <div class="sec-hdr">
+    <h2 class="i18n" data-en="Top 10: Protest Votes &amp; Candidate Surge" data-th="Top 10: คะแนนประท้วงและคะแนนผู้สมัครพุ่ง"></h2>
+    <span class="tag tag-rd i18n" data-en="Abs Deviation Ranked" data-th="จัดอันดับตามค่าสัมบูรณ์"></span>
+  </div>
+  <div class="g2">
+    <div class="card ca crd">
+      <div class="kpi-t" style="margin-bottom:.75rem;color:#f43f5e" id="protest-label"></div>
+      <div class="tbl-wrap" style="max-height:380px" id="protest-table"></div>
+    </div>
+    <div class="card ca cor">
+      <div class="kpi-t" style="margin-bottom:.75rem;color:#f59e0b" id="surge-label"></div>
+      <div class="tbl-wrap" style="max-height:380px" id="surge-table"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ALL DISTRICTS -->
+<div class="section" id="districts">
+  <div class="sec-hdr">
+    <h2 class="i18n" data-en="All Districts — Complete Dataset" data-th="ทุกเขต — ชุดข้อมูลสมบูรณ์"></h2>
+    <span class="tag tag-gr i18n" data-en="With GitHub Source Links" data-th="พร้อมลิงก์แหล่งข้อมูล GitHub"></span>
+  </div>
+  <div class="card full" style="padding:1.1rem">
+    <div class="fbar">
+      <input type="text" id="search-input" placeholder="🔍 Search province / district...">
+      <select id="sev-filter">
+        <option value="all" class="i18n" data-en="All Severity" data-th="ทุกระดับ"></option>
+        <option value="critical" class="i18n" data-en="Critical >5%" data-th="วิกฤต >5%"></option>
+        <option value="high" class="i18n" data-en="High >2%" data-th="สูง >2%"></option>
+        <option value="normal" class="i18n" data-en="Normal" data-th="ปกติ"></option>
+        <option value="missing" class="i18n" data-en="Missing Data" data-th="ข้อมูลขาดหาย"></option>
+      </select>
+      <select id="dir-filter">
+        <option value="all" class="i18n" data-en="All Directions" data-th="ทุกทิศทาง"></option>
+        <option value="pos" class="i18n" data-en="Party > Constituency" data-th="บัญชีรายชื่อ > แบ่งเขต"></option>
+        <option value="neg" class="i18n" data-en="Constituency > Party" data-th="แบ่งเขต > บัญชีรายชื่อ"></option>
+      </select>
+      <span class="cpill" id="row-count"></span>
+    </div>
+    <div class="tbl-wrap" style="max-height:580px">
+      <table><thead><tr id="main-thead"></tr></thead><tbody id="main-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div style="border-top:1px solid var(--b);padding:1.5rem 2rem;color:var(--m);font-size:.75rem">
+  <span class="i18n" data-en="Data: Official ECT Form สส.6/1 PDFs, OCR by" data-th="ข้อมูล: แบบ สส.6/1 ของ กกต. อย่างเป็นทางการ, OCR โดย"></span>
+  <a href="https://github.com/killernay/election-69-OCR-result" target="_blank" style="color:var(--sk)">@killernay</a>.
+  <span class="i18n" data-en="Independent public interest analysis." data-th="การวิเคราะห์อิสระเพื่อประโยชน์สาธารณะ"></span>
+  <a href="https://www.ect.go.th" target="_blank" style="color:var(--sk)">ect.go.th</a>
+</div>
+</div><!-- /wrap -->
+
+<script>
+const DATA = ___JSON_DATA_HERE___;
+
+// ── i18n ─────────────────────────────────────────────────────────────────────
+let LANG = 'en';
+function t(en, th) { return LANG === 'th' ? th : en; }
+function toggleLang() {
+    LANG = LANG === 'en' ? 'th' : 'en';
+    document.getElementById('lang-btn').textContent = LANG === 'en' ? 'TH 🇹🇭' : 'EN 🇬🇧';
+    document.documentElement.lang = LANG;
+    applyI18n();
+    refreshLabels();
+}
+function applyI18n() {
+    document.querySelectorAll('.i18n').forEach(el => {
+        const txt = el.dataset[LANG];
+        if (txt) el.innerHTML = txt;
+    });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const fmt = n => (n == null ? '—' : Math.round(n).toLocaleString('th-TH'));
+const fmtPct = n => (n == null ? '—' : (n > 0 ? '+' : '') + n.toFixed(2) + '%');
+const fmtAbsPct = n => (n == null ? '—' : Math.abs(n).toFixed(2) + '%');
+const COLORS = ['#f97316','#ef4444','#3b82f6','#10b981','#8b5cf6','#f59e0b','#06b6d4','#ec4899','#14b8a6','#a78bfa'];
+const PARTY_COLOR = {'ภูมิใจไทย':'#f97316','ประชาชน':'#ef4444','เพื่อไทย':'#3b82f6','ประชาธิปัตย์':'#22d3ee'};
+function pc(party) { return PARTY_COLOR[party] || '#8b5cf6'; }
+function srcLink(url, label) {
+    return '<a href="' + url + '" target="_blank" class="src-link">📄 ' + label + '</a>';
+}
+function badge(row) {
+    if (row.missing_data) return '<span class="bdg bdg-gy">' + t('MISSING','ขาดข้อมูล') + '</span>';
+    const p = Math.abs(row.diff_percent || 0);
+    if (p > 5) return '<span class="bdg bdg-rd">' + t('CRITICAL','วิกฤต') + '</span>';
+    if (p > 2) return '<span class="bdg bdg-or">' + t('HIGH','สูง') + '</span>';
+    if (p > 0.5) return '<span class="bdg bdg-bl">' + t('MOD','ปานกลาง') + '</span>';
+    return '<span class="bdg bdg-gr">' + t('NORMAL','ปกติ') + '</span>';
+}
+
+// ── KPI Grid ──────────────────────────────────────────────────────────────────
+function renderKPIs() {
+    const ns = DATA.national_stats, ctx = DATA.context, dd = DATA.deep_dive;
+    const kpis = [
+        { t: t('Constituency Votes','คะแนนแบบแบ่งเขต'), v: fmt(ns.total_const_votes), s: t('Valid ballots counted','คะแนนที่ใช้ได้'), c: 'cbl' },
+        { t: t('Party-List Votes','คะแนนบัญชีรายชื่อ'), v: fmt(ns.total_party_votes), s: t('Valid party ballots','บัตรบัญชีรายชื่อที่ใช้ได้'), c: 'cpu' },
+        { t: t('Official Net Discrepancy','ส่วนต่างสุทธิอย่างเป็นทางการ'), v: (ns.vote_discrepancy>0?'+':'')+fmt(ns.vote_discrepancy), d: ((ns.vote_discrepancy/ns.total_const_votes)*100).toFixed(3)+'% '+t('of const votes','ของคะแนนแบ่งเขต'), s: t('ECT official: Total party-list − constituency','กกต.: รวมบัญชีรายชื่อ − แบ่งเขต'), c: 'cor' },
+        { t: t('Abs Total Deviation','ความเบี่ยงเบนสัมบูรณ์รวม'), v: fmt(ctx.abs_total_deviation), d: t('Sum of |diff| per district','ผลรวม |ผลต่าง| ต่อเขต'), s: t('True magnitude across all districts','ขนาดความเบี่ยงเบนที่แท้จริง'), c: 'crd' },
+        { t: t('Pearson R (valid districts)','สหสัมพันธ์เพียร์สัน'), v: dd.correlation.toFixed(4), s: 'R² = ' + (dd.r_squared*100).toFixed(1) + '%', c: 'cpu' },
+        { t: t('Districts >2% Abs Dev','เขตที่เบี่ยงเบน >2% (สัมบูรณ์)'), v: ctx.districts_above_2pct_abs + ' / ' + ctx.total_districts, s: t('Structurally misaligned','ไม่สอดคล้องเชิงโครงสร้าง'), c: 'cor' },
+        { t: t('Spoiled Ballots (Const)','บัตรเสีย (แบ่งเขต)'), v: fmt(ctx.total_spoiled_const), s: t('National constituency total','รวมระดับชาติ แบบแบ่งเขต'), c: 'crd' },
+        { t: t('National Turnout','ผู้มาใช้สิทธิระดับชาติ'), v: ctx.national_turnout_pct + '%', s: fmt(ctx.total_eligible_voters) + t(' eligible',' คนมีสิทธิ'), c: 'cgr' },
+    ];
+    document.getElementById('kpi-grid').innerHTML = kpis.map(k =>
+        '<div class="card ca ' + k.c + '">' +
+        '<div class="kpi-t">' + k.t + '</div>' +
+        '<div class="kpi-v">' + k.v + '</div>' +
+        (k.d ? '<div class="kpi-d">' + k.d + '</div>' : '') +
+        '<div class="kpi-s">' + k.s + '</div>' +
+        '</div>'
+    ).join('');
+}
+
+// ── Variance Grid ─────────────────────────────────────────────────────────────
+function renderVarianceGrid() {
+    const ctx = DATA.context, ns = DATA.national_stats;
+    const items = [
+        { t: t('Net Discrepancy','ความแตกต่างสุทธิ'), v: (ns.vote_discrepancy>0?'+':'')+fmt(ns.vote_discrepancy), s: t('Party > Constituency (national net)','บัญชีรายชื่อ > แบ่งเขต (ระดับชาติ)'), c:'cor' },
+        { t: t('Absolute Total Deviation','ความเบี่ยงเบนสัมบูรณ์รวม'), v: fmt(ctx.abs_total_deviation), s: t('Sum |party−constituency| per district','ผลรวม |บัญชีรายชื่อ−แบ่งเขต| ต่อเขต'), c:'crd' },
+        { t: t('Districts >2% (Abs)','เขตเบี่ยงเบน >2% (สัมบูรณ์)'), v: ctx.districts_above_2pct_abs, s: t('Out of 383 valid districts','จาก 383 เขตที่มีข้อมูล'), c:'cpu' },
+        { t: t('Districts >5% (Abs)','เขตเบี่ยงเบน >5% (สัมบูรณ์)'), v: ctx.districts_above_5pct_abs, s: t('Statistical anomalies |Δ|>5%','ค่าผิดปกติทางสถิติ |Δ|>5%'), c:'cbl' },
+    ];
+    document.getElementById('variance-grid').innerHTML = items.map(i =>
+        '<div class="card ca ' + i.c + '"><div class="kpi-t">' + i.t + '</div>' +
+        '<div class="kpi-v" style="font-size:1.7rem">' + i.v + '</div>' +
+        '<div class="kpi-s">' + i.s + '</div></div>'
+    ).join('');
+}
+
+// ── Abs Deviation Distribution Chart ─────────────────────────────────────────
+function renderAbsDist() {
+    const ec = echarts.init(document.getElementById('chart-abs-dist'));
+    const rows = DATA.extreme_deviations.filter(r => !r.missing_data);
+    const bins = [0,0,0,0,0,0];
+    const labels = ['0-1%','1-2%','2-3%','3-5%','5-10%','>10%'];
+    rows.forEach(r => {
+        const p = Math.abs(r.diff_percent);
+        if(p < 1) bins[0]++;
+        else if(p < 2) bins[1]++;
+        else if(p < 3) bins[2]++;
+        else if(p < 5) bins[3]++;
+        else if(p < 10) bins[4]++;
+        else bins[5]++;
+    });
+    ec.setOption({ backgroundColor:'transparent',
+        tooltip:{ trigger:'axis', backgroundColor:'#111827', textStyle:{color:'#f1f5f9'} },
+        xAxis:{ type:'category', data:labels, axisLabel:{color:'#64748b'} },
+        yAxis:{ type:'value', axisLabel:{color:'#64748b'}, splitLine:{lineStyle:{color:'rgba(255,255,255,.04)'}} },
+        series:[{ type:'bar', data:bins.map((v,i)=>({ value:v, itemStyle:{ color:['#10b981','#34d399','#f59e0b','#f97316','#ef4444','#f43f5e'][i], borderRadius:[4,4,0,0] } })),
+            label:{show:true,position:'top',color:'#94a3b8',fontSize:11} }]
+    });
+    window.addEventListener('resize', ()=>ec.resize());
+}
+
+// ── Net vs Abs Comparison Chart ───────────────────────────────────────────────
+function renderNetAbs() {
+    const ec = echarts.init(document.getElementById('chart-net-abs'));
+    const ns = DATA.national_stats, ctx = DATA.context;
+    ec.setOption({ backgroundColor:'transparent',
+        tooltip:{ trigger:'axis', backgroundColor:'#111827', textStyle:{color:'#f1f5f9'} },
+        xAxis:{ type:'category', data:[t('Net Discrepancy','สุทธิ'), t('Abs Total Dev','สัมบูรณ์'), t('Spoiled (Const)','บัตรเสีย'), t('Spoiled (Party)','บัตรเสีย บช.')], axisLabel:{color:'#64748b',fontSize:10} },
+        yAxis:{ type:'value', axisLabel:{color:'#64748b', formatter: v=>(v/1000).toFixed(0)+'k'}, splitLine:{lineStyle:{color:'rgba(255,255,255,.04)'}} },
+        series:[{ type:'bar', data:[
+            {value:Math.abs(ns.vote_discrepancy), itemStyle:{color:'#f97316', borderRadius:[4,4,0,0]}},
+            {value:ctx.abs_total_deviation, itemStyle:{color:'#ef4444', borderRadius:[4,4,0,0]}},
+            {value:ctx.total_spoiled_const, itemStyle:{color:'#f59e0b', borderRadius:[4,4,0,0]}},
+            {value:ctx.total_spoiled_party||0, itemStyle:{color:'#8b5cf6', borderRadius:[4,4,0,0]}},
+        ], label:{show:true,position:'top',color:'#94a3b8',fontSize:10,formatter:p=>fmt(p.value)} }]
+    });
+    window.addEventListener('resize', ()=>ec.resize());
+}
+
+// ── Seats Chart ───────────────────────────────────────────────────────────────
+function renderSeats() {
+    document.getElementById('seats-label').textContent = t('Constituency Seat Allocation','การจัดสรรที่นั่งแบบแบ่งเขต');
+    const ec = echarts.init(document.getElementById('chart-seats'));
+    const seats = DATA.winner_seats.slice(0,12);
+    const pars = seats.map(s=>s.party).reverse();
+    const cnts = seats.map(s=>s.seats).reverse();
+    ec.setOption({ backgroundColor:'transparent',
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'#111827',textStyle:{color:'#f1f5f9'}},
+        grid:{left:'2%',right:'12%',top:'2%',bottom:'2%',containLabel:true},
+        xAxis:{type:'value',splitLine:{lineStyle:{color:'rgba(255,255,255,.04)'}},axisLabel:{color:'#64748b',fontSize:10}},
+        yAxis:{type:'category',data:pars,axisLabel:{color:'#cbd5e1',fontWeight:'bold',fontSize:10}},
+        series:[{type:'bar',data:cnts.map((v,i)=>({value:v,itemStyle:{color:COLORS[i%COLORS.length],borderRadius:[0,4,4,0]}})),
+            label:{show:true,position:'right',color:'#f1f5f9',fontSize:11,formatter:p=>p.value+t(' seats',' ที่นั่ง')}}]
+    });
+    window.addEventListener('resize',()=>ec.resize());
+}
+
+// ── Popular Vote Chart ────────────────────────────────────────────────────────
+function renderPopular() {
+    document.getElementById('party-label').textContent = t('Top 10 Party-List Popular Vote','10 พรรคคะแนนบัญชีรายชื่อสูงสุด');
+    const ec = echarts.init(document.getElementById('chart-popular'));
+    const ps = DATA.party_strength.slice(0,10);
+    const pars = ps.map(p=>p.party).reverse();
+    const vts = ps.map(p=>p.votes).reverse();
+    ec.setOption({ backgroundColor:'transparent',
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'#111827',textStyle:{color:'#f1f5f9'},
+            formatter:p=>'<b>'+p[0].name+'</b><br/>'+t('Votes:','คะแนน:')+' <b>'+p[0].value.toLocaleString('th-TH')+'</b>'},
+        grid:{left:'2%',right:'12%',top:'2%',bottom:'2%',containLabel:true},
+        xAxis:{type:'value',splitLine:{lineStyle:{color:'rgba(255,255,255,.04)'}},axisLabel:{color:'#64748b',fontSize:10}},
+        yAxis:{type:'category',data:pars,axisLabel:{color:'#cbd5e1',fontWeight:'bold',fontSize:10}},
+        series:[{type:'bar',data:vts.map((v,i)=>({value:v,itemStyle:{color:new echarts.graphic.LinearGradient(1,0,0,0,[{offset:0,color:'#3b82f6'},{offset:1,color:'#8b5cf6'}]),borderRadius:[0,4,4,0]}})),
+            label:{show:true,position:'right',color:'#94a3b8',fontSize:9.5,formatter:p=>(p.value/1e6).toFixed(2)+'M'}}]
+    });
+    window.addEventListener('resize',()=>ec.resize());
+}
+
+// ── Scatter Chart ─────────────────────────────────────────────────────────────
+function renderScatter() {
+    const ec = echarts.init(document.getElementById('chart-scatter'));
+    const dd = DATA.deep_dive;
+    const maxV = Math.max(...dd.scatter_data.map(d=>Math.max(d[0],d[1])));
+    ec.setOption({ backgroundColor:'transparent',
+        legend:{data:[t('Normal (≤2%)','ปกติ (≤2%)'),t('Outlier (>2%)','ผิดปกติ (>2%)'),t('Trend Line','เส้นแนวโน้ม'),t('1:1 Perfect Ratio','อัตราส่วน 1:1')],bottom:0,textStyle:{color:'#94a3b8',fontSize:10}},
+        tooltip:{backgroundColor:'#111827',borderColor:'#1f2937',textStyle:{color:'#f1f5f9',fontSize:11},
+            formatter:function(p){
+                if(p.seriesName===t('Trend Line','เส้นแนวโน้ม')||p.seriesName===t('1:1 Perfect Ratio','อัตราส่วน 1:1')) return null;
+                const v=p.data;
+                return '<b>'+v[2]+'</b><br/>'+t('Constituency:','แบ่งเขต:')+' '+fmt(v[0])+'<br/>'+t('Party-List:','บัญชีรายชื่อ:')+' '+fmt(v[1])+'<br/>'+t('Abs Dev:','เบี่ยงเบนสัมบูรณ์:')+' '+fmtAbsPct(v[3])+'<br/>'+t('Winner:','ผู้ชนะ:')+' '+v[6]+'<br/><a style="color:#34d399">📄 GitHub</a>';
+            }},
+        grid:{top:'6%',left:'5%',right:'3%',bottom:'12%',containLabel:true},
+        xAxis:{type:'value',name:t('Constituency Votes','คะแนนแบ่งเขต'),nameLocation:'middle',nameGap:32,scale:true,
+            axisLabel:{color:'#64748b',fontSize:9,formatter:v=>(v/1000).toFixed(0)+'k'},splitLine:{lineStyle:{color:'rgba(255,255,255,.04)'}}},
+        yAxis:{type:'value',name:t('Party-List Votes','คะแนนบัญชีรายชื่อ'),nameLocation:'middle',nameGap:48,scale:true,
+            axisLabel:{color:'#64748b',fontSize:9,formatter:v=>(v/1000).toFixed(0)+'k'},splitLine:{lineStyle:{color:'rgba(255,255,255,.04)'}}},
+        series:[
+            {name:t('Normal (≤2%)','ปกติ (≤2%)'),type:'scatter',symbolSize:d=>Math.max(6,Math.min(20,Math.abs(d[3])*2.5)),
+                data:dd.scatter_data.filter(d=>Math.abs(d[3])<=2&&!d[5]),
+                itemStyle:{color:'rgba(59,130,246,.55)',borderColor:'rgba(96,165,250,.4)',borderWidth:1}},
+            {name:t('Outlier (>2%)','ผิดปกติ (>2%)'),type:'scatter',symbolSize:d=>Math.max(10,Math.min(30,Math.abs(d[3])*3)),
+                data:dd.scatter_data.filter(d=>Math.abs(d[3])>2||d[5]),
+                itemStyle:{color:'rgba(239,68,68,.7)',borderColor:'rgba(252,165,165,.5)',borderWidth:1.5}},
+            {name:t('Trend Line','เส้นแนวโน้ม'),type:'line',showSymbol:false,data:dd.regression_line,
+                lineStyle:{type:'dashed',color:'rgba(148,163,184,.4)',width:1.5}},
+            {name:t('1:1 Perfect Ratio','อัตราส่วน 1:1'),type:'line',showSymbol:false,data:[[0,0],[maxV,maxV]],
+                lineStyle:{type:'solid',color:'rgba(52,211,153,.4)',width:1.5}},
+        ]
+    });
+    window.addEventListener('resize',()=>ec.resize());
+}
+
+// ── Spoiled Table ─────────────────────────────────────────────────────────────
+function renderSpoiled() {
+    const ctx = DATA.context;
+    document.getElementById('spoiled-const-val').textContent = fmt(ctx.total_spoiled_const);
+    document.getElementById('spoiled-party-val').textContent = fmt(ctx.total_spoiled_party||0) + ' (+' + fmt(ctx.total_no_vote_party||0) + ' blank)';
+    document.getElementById('spoiled-avg-val').textContent = (ctx.avg_spoiled_pct||0).toFixed(2)+'%';
+    document.getElementById('top-spoiled-label').textContent = t('Top 15 Districts by Spoiled Ballot Count','15 เขตที่มีบัตรเสียมากที่สุด');
+    const hdrs = [t('Province','จังหวัด'),t('District','เขต'),t('Spoiled','บัตรเสีย'),t('Spoiled %','% บัตรเสีย'),t('Winner Party','พรรคชนะ'),t('Source','แหล่งข้อมูล')];
+    const rows = (DATA.top_spoiled||[]).map(r=>
+        '<tr><td style="font-weight:600;color:var(--t)">'+r.province+'</td>' +
+        '<td>'+t('Dist','เขต')+' '+r.district+'</td>' +
+        '<td style="color:#fca5a5;font-weight:700;font-family:monospace">'+fmt(r.spoiled_const)+'</td>' +
+        '<td style="color:var(--or)">'+r.spoiled_const_pct+'%</td>' +
+        '<td>'+r.winner_party+'</td>' +
+        '<td>'+srcLink(r.github_url,'JSON')+'</td></tr>'
+    ).join('');
+    document.getElementById('spoiled-table').innerHTML =
+        '<table><thead><tr>'+hdrs.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+// ── Protest/Surge ─────────────────────────────────────────────────────────────
+function miniTbl(rows, color) {
+    const hdrs = [t('Province','จังหวัด'),t('Dist','เขต'),'Δ','%',t('Winner','ผู้ชนะ'),t('Src','ต้นทาง')];
+    return '<table><thead><tr>'+hdrs.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>' +
+        rows.map(r=>'<tr>'+
+            '<td style="font-weight:600;color:var(--t)">'+r.province+'</td>'+
+            '<td>'+r.district+'</td>'+
+            '<td style="color:'+color+';font-weight:700;font-family:monospace">'+(r.vote_diff>0?'+':'')+fmt(r.vote_diff)+'</td>'+
+            '<td>'+fmtPct(r.diff_percent)+'</td>'+
+            '<td style="font-size:.72rem">'+r.winner_party+'</td>'+
+            '<td>'+srcLink(r.github_url,'JSON')+'</td></tr>'
+        ).join('') + '</tbody></table>';
+}
+function renderTopTables() {
+    document.getElementById('protest-label').textContent = t('Top 10 Protest Hubs (Party > Constituency)','Top 10 เขตคะแนนประท้วง (บัญชีรายชื่อ > แบ่งเขต)');
+    document.getElementById('surge-label').textContent = t('Top 10 Candidate Surge (Constituency > Party)','Top 10 เขตผู้สมัครพุ่ง (แบ่งเขต > บัญชีรายชื่อ)');
+    document.getElementById('protest-table').innerHTML = miniTbl(DATA.top_protest_hubs, 'var(--rs)');
+    document.getElementById('surge-table').innerHTML = miniTbl(DATA.top_candidate_surge, 'var(--am)');
+}
+
+// ── Main Table ────────────────────────────────────────────────────────────────
+const allRows = DATA.extreme_deviations;
+function renderHeaders() {
+    const hdrs = ['#',t('Province','จังหวัด'),t('Dist','เขต'),t('Const Votes','คะแนนเขต'),t('Party Votes','คะแนนบช.'),
+        'Δ Net','% Dev',t('|Δ|','|ผลต่าง|'),t('Voters','ผู้มาใช้สิทธิ'),'Turnout',t('Winner','ผู้ชนะ'),t('Party','พรรค'),t('Severity','ระดับ'),t('Source','แหล่งข้อมูล')];
+    document.getElementById('main-thead').innerHTML = hdrs.map(h=>'<th>'+h+'</th>').join('');
+}
+function renderTable(rows) {
+    document.getElementById('row-count').textContent = rows.length+' '+t('rows','แถว');
+    document.getElementById('main-tbody').innerHTML = rows.map((row,i)=>{
+        const diff = row.vote_diff||0;
+        const dc = row.missing_data?'var(--m)':(diff>0?'var(--or)':'var(--sk)');
+        const pct = row.missing_data||row.actual_voters===0?'—':fmtPct(row.diff_percent);
+        const absPct = row.missing_data?'—':fmtAbsPct(row.diff_percent);
+        const tc = (row.turnout_pct||0)<60?'var(--rs)':'var(--d)';
+        return '<tr>'+
+            '<td style="color:var(--m);font-size:.68rem">'+(i+1)+'</td>'+
+            '<td style="font-weight:600;color:var(--t)">'+row.province+'</td>'+
+            '<td>'+row.district+'</td>'+
+            '<td style="font-family:monospace;font-size:.8rem">'+fmt(row.const_votes)+'</td>'+
+            '<td style="font-family:monospace;font-size:.8rem">'+fmt(row.party_votes)+'</td>'+
+            '<td style="color:'+dc+';font-weight:700;font-family:monospace">'+(diff>0?'+':'')+fmt(diff)+'</td>'+
+            '<td style="color:var(--d)">'+pct+'</td>'+
+            '<td style="font-weight:700;color:'+(Math.abs(row.diff_percent||0)>2?'var(--or)':'var(--em)')+'">'+absPct+'</td>'+
+            '<td style="font-family:monospace;font-size:.78rem">'+fmt(row.actual_voters)+'</td>'+
+            '<td style="color:'+tc+'">'+((row.turnout_pct||0).toFixed(1))+'%</td>'+
+            '<td style="font-size:.74rem;max-width:110px;word-break:break-word">'+row.winner_name+'</td>'+
+            '<td>'+row.winner_party+'</td>'+
+            '<td>'+badge(row)+'</td>'+
+            '<td>'+srcLink(row.github_url,'JSON')+'</td>'+
+        '</tr>';
+    }).join('');
+}
+function filterTable() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const sev = document.getElementById('sev-filter').value;
+    const dir = document.getElementById('dir-filter').value;
+    renderTable(allRows.filter(row=>{
+        const mq = !q || row.province.toLowerCase().includes(q) || String(row.district).includes(q) || (row.winner_name||'').toLowerCase().includes(q);
+        const p = Math.abs(row.diff_percent||0);
+        let ms = true;
+        if(sev==='critical') ms=!row.missing_data&&p>5;
+        else if(sev==='high') ms=!row.missing_data&&p>2&&p<=5;
+        else if(sev==='normal') ms=!row.missing_data&&p<=2;
+        else if(sev==='missing') ms=row.missing_data;
+        let md = true;
+        if(dir==='pos') md=(row.vote_diff||0)>0;
+        else if(dir==='neg') md=(row.vote_diff||0)<0;
+        return mq&&ms&&md;
+    }));
+}
+document.getElementById('search-input').addEventListener('input', filterTable);
+document.getElementById('sev-filter').addEventListener('change', filterTable);
+document.getElementById('dir-filter').addEventListener('change', filterTable);
+
+function refreshLabels() {
+    renderHeaders();
+    renderTopTables();
+    renderSpoiled();
+    document.getElementById('seats-label').textContent = t('Constituency Seat Allocation','การจัดสรรที่นั่งแบบแบ่งเขต');
+    document.getElementById('party-label').textContent = t('Top 10 Party-List Popular Vote','10 พรรคคะแนนบัญชีรายชื่อสูงสุด');
+    renderKPIs();
+    renderVarianceGrid();
+    filterTable();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+applyI18n();
+renderKPIs();
+renderVarianceGrid();
+renderAbsDist();
+renderNetAbs();
+renderSeats();
+renderPopular();
+renderScatter();
+renderSpoiled();
+renderTopTables();
+renderHeaders();
+renderTable(allRows);
+</script>
+</body>
+</html>
